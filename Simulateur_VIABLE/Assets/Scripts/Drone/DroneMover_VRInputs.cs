@@ -1,41 +1,53 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.XR;
 
-namespace Viable.VRNav {
-
-    /// <summary>
-    /// Component designed to handle the drone movement
-    /// This is the VR version, implementing inputs for this config
-    /// </summary>
-    public class DroneMover_VRInputs : DroneMover {
-
+namespace Viable.VRNav
+{
+    public class DroneMover_VRInputs : DroneMover
+    {
         [SerializeField] Transform droneJoystick;
         [SerializeField] Transform droneThruster;
-        [SerializeField, Tooltip("Acceleration slider is under the throttle 3D model")] Slider accelerationSlider;
+        [SerializeField, Tooltip("Acceleration slider is under the throttle 3D model")]
+        Slider accelerationSlider;
 
         const float maxJoystickAngle = 20f;
         const float maxThrusterAngle = 40f;
 
+        protected override void UpdateInputs()
+        {
+            Vector2 leftAxis  = ReadAxis(XRNode.LeftHand);   // throttle
+            Vector2 rightAxis = ReadAxis(XRNode.RightHand);  // joystick
 
-        protected override void OnEnable() {
-            base.OnEnable();
+            if (droneThruster != null)
+                droneThruster.localEulerAngles = new Vector3(0f, 0f, maxThrusterAngle * leftAxis.y);
+
+            if (droneJoystick != null)
+                droneJoystick.localEulerAngles = new Vector3(
+                    maxJoystickAngle * rightAxis.y,
+                    -90f,
+                    -maxJoystickAngle * rightAxis.x
+                );
+
+            if (accelerationSlider != null)
+                accelerationSlider.value = (leftAxis.y + 1f) * 0.5f;
+
+            HandleInputs(leftAxis, rightAxis);
         }
 
-        protected override void UpdateInputs() {
-            /*
-             * From controllers to commands rotation (hard-coded because out of time, should be replaced by grabbable commands)
-             */
-            droneThruster.localEulerAngles = new Vector3(0f, 0f, maxThrusterAngle * OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).y);
-            droneJoystick.localEulerAngles = new Vector3(maxJoystickAngle * OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).y, -90f, -maxJoystickAngle * OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x);
-            accelerationSlider.value = (OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).y + 1f) / 2f;
+        static Vector2 ReadAxis(XRNode node)
+        {
+            var d = InputDevices.GetDeviceAtXRNode(node);
 
-            HandleInputs(OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick), OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick));
+            if (d.isValid && d.TryGetFeatureValue(CommonUsages.primary2DAxis, out Vector2 a))
+                return a;
+
+            if (d.isValid && d.TryGetFeatureValue(CommonUsages.secondary2DAxis, out a))
+                return a;
+
+            return Vector2.zero;
         }
 
         protected override void UpdateCamera() { }
-
     }
-
 }

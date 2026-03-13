@@ -559,7 +559,7 @@ namespace Viable.VRNav {
         /// </summary>
         float GetTargetAngle() {
             float targetAngle = Vector3.SignedAngle(droneRb.transform.forward, new Vector3(destination.x - droneRb.transform.position.x, droneRb.transform.forward.y, destination.z - droneRb.transform.position.z), Vector3.up);
-            return (targetAngle > 0 ? 1 : -1) * Mathf.Min(Mathf.Abs(targetAngle), 15f) / 15f; // Max rotation input is reached at an angle of 15°, reduce input strength for closer angle
+            return (targetAngle > 0 ? 1 : -1) * Mathf.Min(Mathf.Abs(targetAngle), 15f) / 15f; // Max rotation input is reached at an angle of 15ï¿½, reduce input strength for closer angle
         }
 
         /// <summary>

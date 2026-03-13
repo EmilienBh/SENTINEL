@@ -1,0 +1,4 @@
+#Thu Mar 12 18:04:55 CET 2026
+base.0=C\:\\Users\\ebonhomm\\Desktop\\SENTINEL\\Test Eyetracking Pico 2 Neo Eye\\My project\\Library\\Bee\\Android\\Prj\\Mono2x\\Gradle\\launcher\\build\\intermediates\\dex\\release\\mergeDexRelease\\classes.dex
+path.0=classes.dex
+renamed.0=classes.dex

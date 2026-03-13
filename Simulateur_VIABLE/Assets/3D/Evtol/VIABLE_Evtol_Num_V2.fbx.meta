@@ -1,0 +1,192 @@
+fileFormatVersion: 2
+guid: f6c95ad9369d66d449bb0d6602763cdc
+ModelImporter:
+  serializedVersion: 21300
+  internalIDToNameTable: []
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BlancMetal_Principal
+    second: {fileID: 2100000, guid: cc2db80e76dd88b4bb275105c2d3da42, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Bois_Habitacle
+    second: {fileID: 2100000, guid: 67e7a919bcdb96f42ac70e62588d2389, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Caoutchou
+    second: {fileID: 2100000, guid: 0404c604e28bfd3499d833930fabe76e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Caoutchou_rouge
+    second: {fileID: 2100000, guid: f26ec47ece3007a4a95625f57c8b79e8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Carbone
+    second: {fileID: 2100000, guid: f4bb43ec2080c804f809fa284a4469a4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Ecran
+    second: {fileID: 2100000, guid: e1b0d47e17267114084a99eaf23eab73, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GrisMetal_Principal
+    second: {fileID: 2100000, guid: 386e92397f7aaf7408a7f7c45142b630, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Leather_Accoudoir
+    second: {fileID: 2100000, guid: 347c6193920ae8246b94b8880bc16365, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: LumBleu
+    second: {fileID: 2100000, guid: 2587493339f857140b8fb8bb8492c07a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: LumVerte
+    second: {fileID: 2100000, guid: 1ca6f6a3b370a224abe6dfb6dac3899f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Lum_Blue
+    second: {fileID: 2100000, guid: 2587493339f857140b8fb8bb8492c07a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Lum_Green
+    second: {fileID: 2100000, guid: 1ca6f6a3b370a224abe6dfb6dac3899f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Lum_Red
+    second: {fileID: 2100000, guid: 95226afa1733e8c49821d48377ed277f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Lum_White
+    second: {fileID: 2100000, guid: c79aee85628723746b21c16fa7c8b719, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: NoirVitre
+    second: {fileID: 2100000, guid: 89426ec57bf92d44d9216c1fd1687b0b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Seat_Tissus
+    second: {fileID: 2100000, guid: 222e5fb0a362be94eb417dd76aaed2ef, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Seat_Tissus.clair
+    second: {fileID: 2100000, guid: c85aa2dd500ec0b4d8dfe8fbe77e393c, type: 2}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties:
+    - '#BAKERY{"meshName":["Verriere","Truster","Toit","Sol","Siege_Dubble","Siege_Alone","Rear_Fan","Porte_Panneau","Porte_Marche","Porte_Cabine","Plafond","Pilot_Seat","Pilot_Screen","Pales_Haute02","Pales_Haute01","LogoViable","LandingGear","Joystick","JointPorte","Habillage_Int","Habillage","Fuselage","Derive","Cloison_Cabine","Ailes"],"padding":[4,94,3,10,7,9,6,40,57,13,8,9,14,9,9,56,8,75,33,7,10,4,16,13,5],"unwrapper":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}'
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importVisibility: 0
+    importBlendShapes: 1
+    importCameras: 0
+    importLights: 0
+    nodeNameCollisionStrategy: 0
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 1
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 10
+    secondaryUVAreaDistortion: 15
+    secondaryUVHardAngle: 75
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 50
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 1
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 0
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 1
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 0
+  humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  remapMaterialsIfMaterialImportModeIsNone: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,320 @@
+fileFormatVersion: 2
+guid: b604c93e9a72cce438a1e412f8c63a1d
+ModelImporter:
+  serializedVersion: 21300
+  internalIDToNameTable:
+  - first:
+      74: -989217178963703254
+    second: Leafs|group_1|Default Take|Layer0
+  - first:
+      74: 7903426050063589795
+    second: Leafs|group_3|Default Take|Layer0
+  - first:
+      74: 1572224204138512200
+    second: Leafs|instance_7|Default Take|Layer0
+  - first:
+      74: 3470060078375944011
+    second: Leafs|instance_7|Default Take|Layer0.001
+  - first:
+      74: -7330271824408776643
+    second: Trunk|group_1|Default Take|Layer0
+  - first:
+      74: -1041199985257245752
+    second: Trunk|group_3|Default Take|Layer0
+  - first:
+      74: 8869922423698630860
+    second: Trunk|instance_7|Default Take|Layer0
+  - first:
+      74: 4811688891203005409
+    second: Trunk|instance_7|Default Take|Layer0.001
+  - first:
+      74: 3491222302904951999
+    second: Leafs.001|group_1|Default Take|Layer0
+  - first:
+      74: -6411423993164795265
+    second: Leafs.001|group_3|Default Take|Layer0
+  - first:
+      74: -703220651962924304
+    second: Leafs.001|instance_7|Default Take|Layer0
+  - first:
+      74: -1733407241521464663
+    second: Leafs.001|instance_7|Default Take|Layer0.001
+  - first:
+      74: 8159878103176374166
+    second: Leafs.002|group_1|Default Take|Layer0
+  - first:
+      74: -5644825782275082984
+    second: Leafs.002|group_3|Default Take|Layer0
+  - first:
+      74: 1525546687002012775
+    second: Leafs.002|instance_7|Default Take|Layer0
+  - first:
+      74: 222733780416759527
+    second: Leafs.002|instance_7|Default Take|Layer0.001
+  - first:
+      74: 6016965067271673765
+    second: Leafs.003|group_1|Default Take|Layer0
+  - first:
+      74: -7240521442673401877
+    second: Leafs.003|group_3|Default Take|Layer0
+  - first:
+      74: -3669390196078034120
+    second: Leafs.003|instance_7|Default Take|Layer0
+  - first:
+      74: -2457781088774014479
+    second: Leafs.003|instance_7|Default Take|Layer0.001
+  - first:
+      74: -6687056999318583070
+    second: Leafs.004|group_1|Default Take|Layer0
+  - first:
+      74: 4448715425346927426
+    second: Leafs.004|group_3|Default Take|Layer0
+  - first:
+      74: -5516924744098780221
+    second: Leafs.004|instance_7|Default Take|Layer0
+  - first:
+      74: 7158830480509512697
+    second: Leafs.004|instance_7|Default Take|Layer0.001
+  - first:
+      74: -2606488210755110589
+    second: Leafs.005|group_1|Default Take|Layer0
+  - first:
+      74: -7403575300485433928
+    second: Leafs.005|group_3|Default Take|Layer0
+  - first:
+      74: 6752713514835605992
+    second: Leafs.005|instance_7|Default Take|Layer0
+  - first:
+      74: -5106481284578505008
+    second: Leafs.005|instance_7|Default Take|Layer0.001
+  - first:
+      74: -2129109285067953023
+    second: Leafs.006|group_1|Default Take|Layer0
+  - first:
+      74: 7529164074162681441
+    second: Leafs.006|group_3|Default Take|Layer0
+  - first:
+      74: 2637823474708993787
+    second: Leafs.006|instance_7|Default Take|Layer0
+  - first:
+      74: 5323759521655322569
+    second: Leafs.006|instance_7|Default Take|Layer0.001
+  - first:
+      74: -5202765354038593278
+    second: Leafs.007|group_1|Default Take|Layer0
+  - first:
+      74: -5941083560697593044
+    second: Leafs.007|group_3|Default Take|Layer0
+  - first:
+      74: -7448759839383178545
+    second: Leafs.007|instance_7|Default Take|Layer0
+  - first:
+      74: -3670718128235160785
+    second: Leafs.007|instance_7|Default Take|Layer0.001
+  - first:
+      74: -1091556442735884534
+    second: Leafs.008|group_1|Default Take|Layer0
+  - first:
+      74: -30164913017315791
+    second: Leafs.008|group_3|Default Take|Layer0
+  - first:
+      74: -3927417001654057838
+    second: Leafs.008|instance_7|Default Take|Layer0
+  - first:
+      74: 3882682447827304504
+    second: Leafs.008|instance_7|Default Take|Layer0.001
+  - first:
+      74: 7063459439302512312
+    second: Leafs.009|group_1|Default Take|Layer0
+  - first:
+      74: 4515605978832594514
+    second: Leafs.009|group_3|Default Take|Layer0
+  - first:
+      74: -180534142032907245
+    second: Leafs.009|instance_7|Default Take|Layer0
+  - first:
+      74: 1277126898448592923
+    second: Leafs.009|instance_7|Default Take|Layer0.001
+  - first:
+      74: 6568863430677131025
+    second: Leafs.010|group_1|Default Take|Layer0
+  - first:
+      74: -9016075399791694256
+    second: Leafs.010|group_3|Default Take|Layer0
+  - first:
+      74: -438529993104159441
+    second: Leafs.010|instance_7|Default Take|Layer0
+  - first:
+      74: 3959103073395781675
+    second: Leafs.010|instance_7|Default Take|Layer0.001
+  - first:
+      74: -1459448139383311141
+    second: Leafs.011|group_1|Default Take|Layer0
+  - first:
+      74: 8271161108924497585
+    second: Leafs.011|group_3|Default Take|Layer0
+  - first:
+      74: 2608754952873729835
+    second: Leafs.011|instance_7|Default Take|Layer0
+  - first:
+      74: 54548404946474887
+    second: Leafs.011|instance_7|Default Take|Layer0.001
+  - first:
+      74: -6640330708406687739
+    second: Leafs.012|group_1|Default Take|Layer0
+  - first:
+      74: -5407994663247506
+    second: Leafs.012|group_3|Default Take|Layer0
+  - first:
+      74: -2906215846432567764
+    second: Leafs.012|instance_7|Default Take|Layer0
+  - first:
+      74: -2807634511350792169
+    second: Leafs.012|instance_7|Default Take|Layer0.001
+  - first:
+      74: 5867252538960639702
+    second: Leafs.013|group_1|Default Take|Layer0
+  - first:
+      74: -690787431186651240
+    second: Leafs.013|group_3|Default Take|Layer0
+  - first:
+      74: 5215257369717552605
+    second: Leafs.013|instance_7|Default Take|Layer0
+  - first:
+      74: -5392399264850903069
+    second: Leafs.013|instance_7|Default Take|Layer0.001
+  - first:
+      74: -9218323250456880381
+    second: Leafs.014|group_1|Default Take|Layer0
+  - first:
+      74: -859996145526031668
+    second: Leafs.014|group_3|Default Take|Layer0
+  - first:
+      74: -6581156938171952581
+    second: Leafs.014|instance_7|Default Take|Layer0
+  - first:
+      74: 1522952579623517337
+    second: Leafs.014|instance_7|Default Take|Layer0.001
+  - first:
+      74: 8809445144605462911
+    second: Leafs.015|group_1|Default Take|Layer0
+  - first:
+      74: 4162500307037038358
+    second: Leafs.015|group_3|Default Take|Layer0
+  - first:
+      74: 1746802177122322760
+    second: Leafs.015|instance_7|Default Take|Layer0
+  - first:
+      74: -4331788064882358470
+    second: Leafs.015|instance_7|Default Take|Layer0.001
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: None__ast5_png
+    second: {fileID: 2100000, guid: 6ba1cfbf78429f643b1ce5a4feabfbc2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: None__bark_pine_wh_png
+    second: {fileID: 2100000, guid: 38e00fd322f3e3f45bc5a16d38838281, type: 2}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 1
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    nodeNameCollisionStrategy: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 0
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 2
+  humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  remapMaterialsIfMaterialImportModeIsNone: 0
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

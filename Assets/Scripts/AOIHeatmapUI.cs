@@ -10,19 +10,27 @@ public class AOIHeatmapUI : MonoBehaviour
             aoiHeatmapManager = FindObjectOfType<AOIHeatmapManager>();
     }
 
+    public void StartRecordingAOI()
+    {
+        if (aoiHeatmapManager == null) return;
+        aoiHeatmapManager.DemarrerEnregistrementAOI();
+    }
+
+    public void StopRecordingAOI()
+    {
+        if (aoiHeatmapManager == null) return;
+        aoiHeatmapManager.ArreterEnregistrementAOI();
+    }
+
     public void ExporterHeatmaps()
     {
-        if (aoiHeatmapManager == null)
-            return;
-
+        if (aoiHeatmapManager == null) return;
         aoiHeatmapManager.ExporterToutesLesZones();
     }
 
     public void ResetHeatmaps()
     {
-        if (aoiHeatmapManager == null)
-            return;
-
+        if (aoiHeatmapManager == null) return;
         aoiHeatmapManager.ReinitialiserToutesLesZones();
     }
 }

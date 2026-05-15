@@ -80,6 +80,12 @@ public class AOIHeatmapManager : MonoBehaviour
         if (ignorerSiYeuxFermes && yeuxFermes)
         {
             AfficherDebug("Yeux fermes");
+
+            if (enregistrementActif && writer != null)
+            {
+                EcrireLigneSansAOI("EYES_CLOSED");
+            }
+
             return;
         }
 
@@ -112,6 +118,11 @@ public class AOIHeatmapManager : MonoBehaviour
                 "Point : " + okPoint
             );
 
+            if (enregistrementActif && writer != null)
+            {
+                EcrireLigneSansAOI("TRACKING_INVALID");
+            }
+
             return;
         }
 
@@ -123,6 +134,11 @@ public class AOIHeatmapManager : MonoBehaviour
                 "okStatut : " + okStatut + "\n" +
                 "statut : " + statut
             );
+
+            if (enregistrementActif && writer != null)
+            {
+                EcrireLigneSansAOI("STATUS_INVALID");
+            }
 
             return;
         }
@@ -158,6 +174,17 @@ public class AOIHeatmapManager : MonoBehaviour
                 QueryTriggerInteraction.Collide))
         {
             AfficherDebug("Raycast : rien");
+
+            if (enregistrementActif && writer != null)
+            {
+                EcrireLigneSansAOI(
+                    "NO_HIT",
+                    origineRegardMonde,
+                    directionRegardMonde,
+                    yeuxFermes
+                );
+            }
+
             return;
         }
 
@@ -198,6 +225,23 @@ public class AOIHeatmapManager : MonoBehaviour
                 "Objet touche sans AOI\n" +
                 hit.collider.gameObject.name
             );
+
+            if (enregistrementActif && writer != null)
+            {
+                Vector3 localPoint = hit.collider.transform.InverseTransformPoint(hit.point);
+
+                EcrireLigneAOI(
+                    "NONE",
+                    hit.collider.gameObject.name,
+                    hit,
+                    new Vector2(-1f, -1f),
+                    localPoint,
+                    origineRegardMonde,
+                    directionRegardMonde,
+                    yeuxFermes,
+                    0
+                );
+            }
 
             return;
         }
@@ -444,7 +488,8 @@ public class AOIHeatmapManager : MonoBehaviour
         Vector3 localPoint,
         Vector3 origineRegardMonde,
         Vector3 directionRegardMonde,
-        bool yeuxFermes)
+        bool yeuxFermes,
+        int valid = 1)
     {
         double tSec =
             Time.realtimeSinceStartupAsDouble -
@@ -457,7 +502,7 @@ public class AOIHeatmapManager : MonoBehaviour
             tSec.ToString("F6", culture),
             utcIso,
             Time.frameCount.ToString(culture),
-            "1",
+            valid.ToString(culture),
             Nettoyer(aoiId),
             Nettoyer(objectName),
             uv.x.ToString("F6", culture),
@@ -482,6 +527,59 @@ public class AOIHeatmapManager : MonoBehaviour
 
         if (flushChaqueLigne)
             writer.Flush();
+    }
+
+    private void EcrireLigneSansAOI(
+        string reason,
+        Vector3 origineRegardMonde,
+        Vector3 directionRegardMonde,
+        bool yeuxFermes = false)
+    {
+        double tSec =
+            Time.realtimeSinceStartupAsDouble -
+            tempsReference;
+
+        string utcIso =
+            DateTime.UtcNow.ToString("o", culture);
+
+        string ligne = string.Join(",",
+            tSec.ToString("F6", culture),
+            utcIso,
+            Time.frameCount.ToString(culture),
+            "0",
+            Nettoyer(reason),
+            "NONE",
+            "-1",
+            "-1",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            origineRegardMonde.x.ToString("F6", culture),
+            origineRegardMonde.y.ToString("F6", culture),
+            origineRegardMonde.z.ToString("F6", culture),
+            directionRegardMonde.x.ToString("F6", culture),
+            directionRegardMonde.y.ToString("F6", culture),
+            directionRegardMonde.z.ToString("F6", culture),
+            "-1",
+            yeuxFermes ? "1" : "0"
+        );
+
+        writer.WriteLine(ligne);
+
+        if (flushChaqueLigne)
+            writer.Flush();
+    }
+    private void EcrireLigneSansAOI(string reason)
+    {
+        EcrireLigneSansAOI(
+            reason,
+            Vector3.zero,
+            Vector3.zero,
+            false
+        );
     }
 
     private void ExporterMetadataAOI(

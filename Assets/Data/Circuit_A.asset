@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2639cd8cfa769542861d7f2853b28f9, type: 3}
+  m_Name: Circuit_A
+  m_EditorClassIdentifier: 
+  steps:
+  - type: 0
+    stepPosition: {x: 384.42, y: 2.48, z: 53.8}
+    stepRotaEuler: {x: 0, y: 320.99997, z: 0}
+    cancelStepTime: 0
+  - type: 1
+    stepPosition: {x: 384.42, y: 22.48, z: 53.8}
+    stepRotaEuler: {x: 0, y: 0, z: 0}
+    cancelStepTime: 0
+  - type: 2
+    stepPosition: {x: 214.5, y: 27.2, z: 543.9}
+    stepRotaEuler: {x: 0.79523206, y: 160.87833, z: 0.000000026682997}
+    cancelStepTime: 0.5
+  - type: 6
+    stepPosition: {x: -77.68113, y: 9.999998, z: 140}
+    stepRotaEuler: {x: 3.573943, y: 131.85394, z: 0.000000106929654}
+    cancelStepTime: 0
+  - type: 3
+    stepPosition: {x: 143.47, y: 17.05, z: 491.78}
+    stepRotaEuler: {x: 0, y: 180, z: 0}
+    cancelStepTime: 0
+  - type: 4
+    stepPosition: {x: 0, y: 0, z: 0}
+    stepRotaEuler: {x: 0, y: 0, z: 0}
+    cancelStepTime: 0

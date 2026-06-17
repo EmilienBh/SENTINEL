@@ -3,17 +3,18 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - CircuitItem
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - AOI
   - Water
   - UI
-  - 
-  - 
-  - 
+  - Drone
+  - Buildings
+  - Screens Only
   - 
   - 
   - 

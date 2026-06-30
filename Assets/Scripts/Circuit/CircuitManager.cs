@@ -238,8 +238,8 @@ namespace Viable.Circuit {
         void StopCircuit(bool isCompleted) {
             if (actualCircuit == null) { return; } // Check request validity
             string circuitResults = actualCircuit.CompleteCircuit(); // Request the circuit completion (raw infos - lacks of an introduction message, added below)
-            string circuitMessageToScreen = "Circuit complété!\nRésumé du parcours:" + circuitResults;
-            string circuitMessageToDrive = $"[{actualCircuit.name}] - Statut : {(isCompleted ? "Complété" : "Non complété")} - Mode : {DroneMover.GetActualMode()}" + circuitResults;
+            string circuitMessageToScreen = "Circuit complÃ©tÃ©!\nRÃ©sumÃ© du parcours:" + circuitResults;
+            string circuitMessageToDrive = $"[{actualCircuit.name}] - Statut : {(isCompleted ? "ComplÃ©tÃ©" : "Non complÃ©tÃ©")} - Mode : {DroneMover.GetActualMode()}" + circuitResults;
 
             if (enableSendLogs) { GoogleDriveCircuitDataUploader.SubmitCircuitData(circuitMessageToDrive); }
             resultsText.text = circuitMessageToScreen;
@@ -253,46 +253,46 @@ namespace Viable.Circuit {
         void UpdateCircuitInfos() {
             switch (actualCircuit?.actualStep?.Type) {
                 case StepType.Setup:
-                    infosText.text = "Démarrage du circuit...";
+                    infosText.text = "DÃ©marrage du circuit...";
                     infosContainer.color = GreenColor;
                     break;
                 case StepType.TakeOff:
-                    infosText.text = "Décollez à une altitude de 20m\npour commencer.";
+                    infosText.text = "DÃ©collez Ã  une altitude de 20m\npour commencer.";
                     infosContainer.color = GreenColor;
                     break;
                 case StepType.Destination:
-                    infosText.text = "Atteignez la destination.\nVitesse à maintenir :\n70km/h.";
+                    infosText.text = "Atteignez la destination.\nVitesse Ã  maintenir :\n70km/h.";
                     infosContainer.color = CircuitStep_Door.IsSpeedMatched() ? GreenColor : OrangeColor;
                     break;
                 case StepType.PreLanding:
                     if (DroneMover.GetGenericStats().y < 10f) {
-                        infosText.text = "Préparation à l'atterrissage\nRemontez une altitude de 10m...";
+                        infosText.text = "PrÃ©paration Ã  l'atterrissage\nRemontez une altitude de 10m...";
                         infosContainer.color = RedColor;
                     }
                     else if (CircuitStep_PreLandingZone.RequestLandingCamera) {
-                        infosText.text = "Préparation à l'atterrissage\nActivez la caméra d'atterrissage...";
+                        infosText.text = "PrÃ©paration Ã  l'atterrissage\nActivez la camÃ©ra d'atterrissage...";
                         infosContainer.color = OrangeColor;
                     }
                     else {
-                        infosText.text = "Préparation à l'atterrissage\nPlacez-vous comme demandé le plus vite possible.";
+                        infosText.text = "PrÃ©paration Ã  l'atterrissage\nPlacez-vous comme demandÃ© le plus vite possible.";
                         infosContainer.color = OrangeColor;
                     }
                     break;
                 case StepType.Landing:
-                    infosText.text = "Circuit complété, atterrissez.";
+                    infosText.text = "Circuit complÃ©tÃ©, atterrissez.";
                     infosContainer.color = GreenColor;
                     break;
                 case StepType.Detour:
-                    infosText.text = "Détour : Atteignez\nla destination\nsans limitation\nde vitesse.";
+                    infosText.text = "DÃ©tour : Atteignez\nla destination\nsans limitation\nde vitesse.";
                     infosContainer.color = RedColor;
                     break;
                 case StepType.Wind:
                     if (CircuitStep_Wind.IsAligned()) {
-                        infosText.text = "Maintenez le cap indiqué...";
+                        infosText.text = "Maintenez le cap indiquÃ©...";
                         infosContainer.color = OrangeColor;
                     }
                     else {
-                        infosText.text = "Fortes rafales de vent !\nCalcul d'un cap de compensation, suivez le cap indiqué.";
+                        infosText.text = "Fortes rafales de vent !\nCalcul d'un cap de compensation, suivez le cap indiquÃ©.";
                         infosContainer.color = RedColor;
                     }
                     break;
@@ -306,6 +306,13 @@ namespace Viable.Circuit {
         }
 
         public static CircuitStep GetCircuitStep() => Instance?.actualCircuit?.actualStep;
+
+        public static Circuit GetCurrentCircuit() => Instance?.actualCircuit;
+
+        public static bool TryGetCurrentStep(out CircuitStep step) {
+            step = Instance?.actualCircuit?.actualStep;
+            return step != null;
+        }
 
         /// <summary>
         /// Function called to convert a prefab type into its prefab, attached to this component

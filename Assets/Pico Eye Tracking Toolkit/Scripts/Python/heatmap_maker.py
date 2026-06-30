@@ -98,7 +98,7 @@ def generer_heatmaps(dossier_session: str, sigma=18, alpha_max=0.70, colormap="j
 
 def main():
 
-    dossier_session = r"C:\Users\ebonhomm\Desktop\20260602_114455"
+    dossier_session = r"C:\Users\ebonhomm\Desktop\20260617_165535"
     
 
     generer_heatmaps(

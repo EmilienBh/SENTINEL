@@ -3,6 +3,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using Viable.Circuit;
 
 namespace Viable.VRNav {
 
@@ -97,6 +98,49 @@ namespace Viable.VRNav {
         int numerical_previousVerticalInput = 0; // Previous numerical value, used to determine numerical increment
         const float numerical_increment = 0.25f; // Value to add/remove on numerical udpate
         const float linear_zeroCeil = 0.15f; // If the value of an input is lower than ceil, consider this input is released (see refs to this variable for concrete applications)
+
+
+        // Experimental assistance modes for SAGAS protocol
+        public enum AutomationMode { FullManual, SemiAssisted, Assisted }
+
+        [Space, Header("SAGAS automation")]
+        [SerializeField] AutomationMode automationMode = AutomationMode.FullManual;
+        [SerializeField, Range(0f, 1f)] float semiAssistanceStrength = 0.45f;
+        [SerializeField] float targetAngleMax = 30f;
+        [SerializeField] float waypointTolerance = 2.5f;
+        [SerializeField] float preLandingHeightAboveCheckpoint = 10f;
+        [SerializeField, Tooltip("Mandatory safety height above PreLanding/Landing point before any landing descent starts. This is measured from the drone height sensor, not from the Rigidbody center.")]
+        float landingSafetyHeightAboveCheckpoint = 10.5f;
+        [SerializeField, Tooltip("Direct vertical speed used during the final assisted landing descent, in meters per second.")]
+        float landingDescentSpeed = 2.0f;
+        [SerializeField] float landingHeightAboveCheckpoint = 0.5f;
+        [SerializeField, Tooltip("Distance before a checkpoint at which the assisted pilot starts matching the checkpoint altitude.")]
+        float checkpointAltitudeAlignmentDistance = 15f;
+        [SerializeField, Tooltip("Target cruise speed on Destination checkpoints, in km/h.")]
+        float destinationCruiseSpeedKmh = 70f;
+        [SerializeField, Tooltip("Horizontal distance under which the landing step is considered centered above the landing point.")]
+        float landingHorizontalTolerance = 1.25f;
+        [SerializeField, Tooltip("Height above the landing point under which the landing assistance stops pushing down.")]
+        float landedWorldAltitudeTolerance = 0.35f;
+
+        [Header("Semi-assisted corridor")]
+        [SerializeField, Tooltip("Horizontal distance from the ideal segment where no trajectory assistance is applied.")]
+        float semiCorridorFreeRadius = 3f;
+        [SerializeField, Tooltip("Horizontal distance from the ideal segment where the trajectory assistance reaches the Semi Assistance Strength value.")]
+        float semiCorridorMaxRadius = 12f;
+        [SerializeField, Tooltip("Point ahead on the ideal segment used as the correction target when the drone leaves the corridor.")]
+        float semiCorridorLookAhead = 12f;
+        [SerializeField, Tooltip("Maximum lateral correction injected by the semi-assisted corridor.")]
+        float semiMaxStrafeCorrection = 0.75f;
+        [SerializeField, Tooltip("Minimum player command magnitude required before speed assistance can push the drone forward.")]
+        float semiPlayerMoveDeadzone = 0.15f;
+
+        CircuitStep lastAssistedStep = null;
+        float stepEntryWorldAltitude = 0f;
+        float stepEntryHorizontalDistance = 0f;
+        Vector3 stepEntryTargetPosition = Vector3.zero;
+        bool hasStepEntryReference = false;
+        Vector3 lastPreLandingWorldPosition = Vector3.zero;
 
         // Properties
         float FrontSpeed => Vector3.Dot(droneRb.velocity, droneRb.transform.forward); // Frontal speed is velocity in front direction
@@ -294,6 +338,7 @@ namespace Viable.VRNav {
             }
             else {
                 UpdateInputs();
+                ApplyExperimentalAutomation();
                 if (actualMode == ConductMode.TiltRotor && !IsHoverMode) { strafeInput = 0f; } // Disable strafe input for Tilt-Rotor mode, if not in hover mode
                 UpdateConstantInput_Linear();
             }
@@ -551,6 +596,539 @@ namespace Viable.VRNav {
             }
         }
 
+
+        #endregion
+
+
+        #region SAGAS Experimental Automation
+
+        public static void SetAutomationMode(AutomationMode mode) {
+            if (Instance == null) { return; }
+            Instance.automationMode = mode;
+
+            // If the old map autopilot was active, stop it when selecting an experimental mode manually.
+            // The SAGAS circuit automation below is independent from this legacy autopilot.
+            if (mode != AutomationMode.Assisted && Instance.autopilotActive) {
+                Instance.CancelDestination();
+            }
+        }
+
+        // ---------------------------------------------------------------------
+        // Unity UI / VR button calls
+        // ---------------------------------------------------------------------
+        // These parameterless methods are meant to be assigned directly in
+        // Button > OnClick() from a World Space Canvas in the headset.
+
+        public void SetPilotMode_Manual() {
+            automationMode = AutomationMode.FullManual;
+            if (autopilotActive) { CancelDestination(); }
+        }
+
+        public void SetPilotMode_SemiAssisted() {
+            automationMode = AutomationMode.SemiAssisted;
+            if (autopilotActive) { CancelDestination(); }
+        }
+
+        public void SetPilotMode_Assisted() {
+            automationMode = AutomationMode.Assisted;
+        }
+
+        public void SetControlMode_Classical() {
+            StaticSetMode(ConductMode.Classical);
+        }
+
+        public void SetControlMode_Drone() {
+            StaticSetMode(ConductMode.Drone);
+        }
+
+        public void SetControlMode_TiltRotor() {
+            StaticSetMode(ConductMode.TiltRotor);
+        }
+
+        public AutomationMode CurrentAutomationMode => automationMode;
+        public ConductMode CurrentConductMode => actualMode;
+
+
+        void ApplyExperimentalAutomation() {
+            if (!isCircuitInProgress || autopilotActive) { return; }
+
+            if (!CircuitManager.TryGetCurrentStep(out CircuitStep step)) { return; }
+
+            if (step != lastAssistedStep) {
+                lastAssistedStep = step;
+                stepEntryWorldAltitude = droneRb.transform.position.y;
+                stepEntryHorizontalDistance = 0f;
+                stepEntryTargetPosition = Vector3.zero;
+                hasStepEntryReference = false;
+
+                // The Landing step can be serialized as (0,0,0) because it inherits the previous PreLanding point.
+                // Keep the last pre-landing world position so the drone does not fly away from the landing zone.
+                if (step.Type == StepType.PreLanding) {
+                    lastPreLandingWorldPosition = step.StepPosition;
+                }
+            }
+
+            switch (automationMode) {
+                case AutomationMode.FullManual:
+                    return;
+
+                case AutomationMode.SemiAssisted:
+                    ApplySemiAssisted(step);
+                    return;
+
+                case AutomationMode.Assisted:
+                    ApplyAssisted(step);
+                    return;
+            }
+        }
+
+        void ApplySemiAssisted(CircuitStep step) {
+            // The semi-assisted mode is intentionally NOT a permanent blend with the autopilot.
+            // The player keeps full control inside a corridor around the ideal segment.
+            // The farther the drone leaves that corridor, the stronger the corrective help becomes.
+
+            switch (step.Type) {
+                case StepType.Setup:
+                    return;
+
+                case StepType.TakeOff:
+                    // Do not auto take-off in semi-assisted mode: the player must initiate the climb.
+                    return;
+
+                case StepType.PreLanding:
+                    // Semi-assisted mode must NOT fly the pre-landing step alone.
+                    // The player keeps control; the system only prevents unsafe low altitude
+                    // and gently helps to stay around the final approach point.
+                    ApplySemiPreLandingAssist(step);
+                    return;
+
+                case StepType.Landing:
+                    // Semi-assisted mode must NOT perform the automatic final descent.
+                    // The player must descend/land manually. We only keep a light horizontal help
+                    // and avoid dragging the drone down by ourselves.
+                    ApplySemiLandingAssist(step);
+                    return;
+            }
+
+            Vector3 target = ResolveStepTarget(step);
+            if (target == Vector3.zero) { return; }
+
+            Vector3 dronePos = droneRb.position;
+            float horizontalDistanceToTarget = HorizontalDistance(dronePos, target);
+            EnsureStepEntryReference(target, horizontalDistanceToTarget);
+
+            Vector3 segmentStart = new Vector3(stepEntryTargetPosition.x, 0f, stepEntryTargetPosition.z);
+            if (segmentStart == Vector3.zero) {
+                segmentStart = new Vector3(dronePos.x, 0f, dronePos.z);
+            }
+
+            // stepEntryTargetPosition stores the current target. The segment start is the drone position captured
+            // when the step began. This makes the corridor independent from the previous circuit internals.
+            Vector3 start = new Vector3(stepEntryStartPosition.x, 0f, stepEntryStartPosition.z);
+            Vector3 end = new Vector3(target.x, 0f, target.z);
+            Vector3 pos = new Vector3(dronePos.x, 0f, dronePos.z);
+            Vector3 segment = end - start;
+
+            if (segment.sqrMagnitude < 0.01f) {
+                return;
+            }
+
+            Vector3 segmentDir = segment.normalized;
+            float segmentLength = segment.magnitude;
+            float progress = Mathf.Clamp01(Vector3.Dot(pos - start, segmentDir) / segmentLength);
+            Vector3 closestPoint = start + segmentDir * (progress * segmentLength);
+            float lateralError = Vector3.Distance(pos, closestPoint);
+
+            float corridorAssist = ComputeSmoothAssist(lateralError, semiCorridorFreeRadius, semiCorridorMaxRadius) * semiAssistanceStrength;
+
+            if (corridorAssist > 0.001f) {
+                // Aim at a point slightly ahead on the ideal segment, not directly at the checkpoint.
+                // This creates a visible "rail/corridor" behaviour instead of a weak target-facing correction.
+                Vector3 aheadPoint = start + segmentDir * Mathf.Clamp(progress * segmentLength + semiCorridorLookAhead, 0f, segmentLength);
+                Vector3 correctionDirection = aheadPoint - pos;
+
+                if (correctionDirection.sqrMagnitude > 0.1f) {
+                    float angle = Vector3.SignedAngle(droneRb.transform.forward, correctionDirection.normalized, Vector3.up);
+                    float rotationCorrection = Mathf.Clamp(angle / targetAngleMax, -1f, 1f);
+                    rotationInput = Mathf.Lerp(rotationInput, rotationCorrection, corridorAssist);
+                }
+
+                // Add a true lateral correction. Without this, the drone may only rotate a bit and the player
+                // does not feel any corridor assistance.
+                Vector3 toCorridor = closestPoint - pos;
+                if (toCorridor.sqrMagnitude > 0.01f) {
+                    float signedRightCorrection = Vector3.Dot(toCorridor.normalized, droneRb.transform.right);
+                    float strafeCorrection = Mathf.Clamp(signedRightCorrection * semiMaxStrafeCorrection, -semiMaxStrafeCorrection, semiMaxStrafeCorrection);
+                    strafeInput = Mathf.Lerp(strafeInput, strafeCorrection, corridorAssist);
+                }
+            }
+
+            ApplySemiAltitudeAssist(step, target, horizontalDistanceToTarget);
+            ApplySemiSpeedGuard(horizontalDistanceToTarget, corridorAssist);
+        }
+
+        Vector3 stepEntryStartPosition = Vector3.zero;
+
+        Vector3 ResolveStepTarget(CircuitStep step) {
+            if (step.Type == StepType.Landing) {
+                return ResolveLandingTarget(step);
+            }
+
+            Vector3 objective = step.GetObjectivePosition();
+            if (objective != Vector3.zero) { return objective; }
+            return step.StepPosition;
+        }
+
+        float ComputeSmoothAssist(float value, float freeValue, float maxValue) {
+            if (maxValue <= freeValue) { return value > freeValue ? 1f : 0f; }
+            float t = Mathf.InverseLerp(freeValue, maxValue, value);
+            return Mathf.SmoothStep(0f, 1f, t);
+        }
+
+        void ApplySemiAltitudeAssist(CircuitStep step, Vector3 target, float horizontalDistanceToTarget) {
+            if (step.Type != StepType.Destination && step.Type != StepType.Detour && step.Type != StepType.Wind) {
+                return;
+            }
+
+            // Altitude help must be local to the checkpoint. It must not drag the drone down early,
+            // otherwise a low checkpoint behind buildings can make the drone land on rooftops.
+            float proximityAssist = ComputeSmoothAssist(30f - horizontalDistanceToTarget, 0f, 25f);
+            float altitudeAssist = proximityAssist * semiAssistanceStrength;
+
+            float altitudeError = target.y - droneRb.position.y;
+
+            // If the checkpoint is much lower, do not force a descent while still far from it.
+            if (altitudeError < 0f && horizontalDistanceToTarget > checkpointAltitudeAlignmentDistance) {
+                altitudeAssist *= 0.15f;
+            }
+
+            if (altitudeAssist <= 0.001f) { return; }
+
+            float altitudeCorrection = Mathf.Clamp(altitudeError / 6f, -1f, 1f);
+            verticalInput = Mathf.Lerp(verticalInput, altitudeCorrection, altitudeAssist);
+        }
+
+        void ApplySemiSpeedGuard(float horizontalDistanceToTarget, float corridorAssist) {
+            // Semi-assisted must not fly away by itself when the player releases the stick.
+            // It only prevents absurdly low speed when the player is actually trying to move,
+            // or when the drone is far outside the corridor.
+            bool playerWantsToMove = Mathf.Abs(frontInput) > semiPlayerMoveDeadzone;
+            bool outsideCorridor = corridorAssist > 0.25f;
+            if (!playerWantsToMove && !outsideCorridor) { return; }
+
+            float targetSpeed = destinationCruiseSpeedKmh / 3.6f;
+            float autoFront = ComputeCruiseFrontInput(targetSpeed, horizontalDistanceToTarget, 1f);
+            float speedAssist = Mathf.Clamp01(Mathf.Max(corridorAssist, semiAssistanceStrength * 0.35f));
+            frontInput = Mathf.Lerp(frontInput, autoFront, speedAssist);
+        }
+
+        void ApplySemiPreLandingAssist(CircuitStep step) {
+            Vector3 preLandingPoint = step.StepPosition;
+            if (preLandingPoint == Vector3.zero) { return; }
+
+            // Store it for the following Landing step, because Landing may be serialized as (0,0,0).
+            lastPreLandingWorldPosition = preLandingPoint;
+
+            Vector3 dronePos = droneRb.position;
+            float horizontalDistance = HorizontalDistance(dronePos, preLandingPoint);
+            ApplySemiPointHorizontalAssist(preLandingPoint, horizontalDistance);
+
+            // Safety only: if the player arrives too low, the assist lifts the drone back to 10.5 m.
+            // If the player is already above this height, we do NOT pull the drone down.
+            float safeSensorY = preLandingPoint.y + landingSafetyHeightAboveCheckpoint;
+            ForceMinimumSensorAltitude(safeSensorY);
+        }
+
+        void ApplySemiLandingAssist(CircuitStep step) {
+            Vector3 landingPoint = ResolveLandingTarget(step);
+            if (landingPoint == Vector3.zero) { return; }
+
+            Vector3 dronePos = droneRb.position;
+            float horizontalDistance = HorizontalDistance(dronePos, landingPoint);
+            ApplySemiPointHorizontalAssist(landingPoint, horizontalDistance);
+
+            // Important: no automatic descent in SemiAssisted mode.
+            // Once the player is around/above the landing point, vertical control is manual.
+            // We only keep the 10.5 m safety while the drone is still not centered, to avoid
+            // arriving below the validated landing corridor.
+            if (horizontalDistance > landingHorizontalTolerance) {
+                float safeSensorY = landingPoint.y + landingSafetyHeightAboveCheckpoint;
+                ForceMinimumSensorAltitude(safeSensorY);
+            }
+        }
+
+        void ApplySemiPointHorizontalAssist(Vector3 targetPoint, float horizontalDistance) {
+            if (targetPoint == Vector3.zero) { return; }
+
+            // Assistance progressive autour du point final : libre proche du point, correction forte si on s'en Ã©carte.
+            float pointAssist = ComputeSmoothAssist(horizontalDistance, semiCorridorFreeRadius, semiCorridorMaxRadius) * semiAssistanceStrength;
+            if (pointAssist <= 0.001f) { return; }
+
+            Vector3 dronePos = droneRb.position;
+            Vector3 flatDirection = new Vector3(targetPoint.x - dronePos.x, 0f, targetPoint.z - dronePos.z);
+            if (flatDirection.sqrMagnitude > 0.1f) {
+                float angle = Vector3.SignedAngle(droneRb.transform.forward, flatDirection.normalized, Vector3.up);
+                float rotationCorrection = Mathf.Clamp(angle / targetAngleMax, -1f, 1f);
+                rotationInput = Mathf.Lerp(rotationInput, rotationCorrection, pointAssist);
+
+                float signedRightCorrection = Vector3.Dot(flatDirection.normalized, droneRb.transform.right);
+                float strafeCorrection = Mathf.Clamp(signedRightCorrection * semiMaxStrafeCorrection, -semiMaxStrafeCorrection, semiMaxStrafeCorrection);
+                strafeInput = Mathf.Lerp(strafeInput, strafeCorrection, pointAssist);
+            }
+        }
+
+        void ApplyAssisted(CircuitStep step) {
+            switch (step.Type) {
+                case StepType.Setup:
+                    StopAssistedInputs();
+                    break;
+
+                case StepType.TakeOff:
+                    // Original circuit instruction: take off until 20 m relative height.
+                    StopHorizontalAssistedInputs();
+                    verticalInput = height < 20f ? 1f : 0f;
+                    break;
+
+                case StepType.Destination:
+                    MoveToTarget(step.StepPosition, 1f, 1f, false, destinationCruiseSpeedKmh / 3.6f);
+                    break;
+
+                case StepType.Detour:
+                    MoveToTarget(step.GetObjectivePosition(), 1f, 1f, false, destinationCruiseSpeedKmh / 3.6f);
+                    break;
+
+                case StepType.Wind:
+                    MoveToTarget(step.GetObjectivePosition(), 0.6f, 0.8f, true);
+                    break;
+
+                case StepType.PreLanding:
+                    MoveToPreLanding(step);
+                    break;
+
+                case StepType.Landing:
+                    MoveToLanding(step);
+                    break;
+            }
+        }
+
+        void MoveToPreLanding(CircuitStep step) {
+            Vector3 dronePos = droneRb.position;
+            Vector3 preLandingPoint = step.StepPosition;
+            float safeSensorY = preLandingPoint.y + landingSafetyHeightAboveCheckpoint;
+
+            Vector3 horizontalTarget = new Vector3(preLandingPoint.x, dronePos.y, preLandingPoint.z);
+            float horizontalDistance = HorizontalDistance(dronePos, horizontalTarget);
+
+            if (horizontalDistance > waypointTolerance) {
+                // Go to the PreLanding point horizontally, but never descend during this phase.
+                MoveToTarget(horizontalTarget, 0.7f, 1f, true);
+
+                // Safety is measured with the height sensor, because this is the bottom of the drone.
+                ForceMinimumSensorAltitude(safeSensorY);
+                return;
+            }
+
+            // Once above the PreLanding point, hold horizontally and force 10.5 m minimum.
+            StopHorizontalAssistedInputs();
+            ForceMinimumSensorAltitude(safeSensorY);
+        }
+
+        void MoveToLanding(CircuitStep step) {
+            Vector3 dronePos = droneRb.position;
+            Vector3 landingPoint = ResolveLandingTarget(step);
+            float safeSensorY = landingPoint.y + landingSafetyHeightAboveCheckpoint;
+            Vector3 horizontalTarget = new Vector3(landingPoint.x, dronePos.y, landingPoint.z);
+            float horizontalDistance = HorizontalDistance(dronePos, horizontalTarget);
+
+            if (horizontalDistance > landingHorizontalTolerance) {
+                // Stay horizontally locked on the real landing point, not on the serialized (0,0,0) Landing step.
+                // While centering, never descend. If the sensor is below the safety height, climb first.
+                MoveToTarget(horizontalTarget, 0.22f, 0.5f, true, 3.5f);
+                ForceMinimumSensorAltitude(safeSensorY);
+                return;
+            }
+
+            StopHorizontalAssistedInputs();
+
+            // Absolute rule: once centered above the landing point, the drone MUST first reach
+            // 10.5 m above the landing point, measured from the bottom height sensor.
+            // No descent command is allowed before that.
+            if (ForceMinimumSensorAltitude(safeSensorY)) {
+                return;
+            }
+
+            float targetSensorY = landingPoint.y + landingHeightAboveCheckpoint;
+
+            if (GetSensorWorldY() <= targetSensorY + landedWorldAltitudeTolerance || height <= 0.7f) {
+                verticalInput = 0f;
+                verticalPropulsion = 0f;
+                KillVerticalVelocity();
+                return;
+            }
+
+            // Final descent is direct and deterministic. It does not rely on verticalInput/propulsion,
+            // because those are intentionally damped by the original drone physics and made the landing
+            // crawl at roughly 0.1 m every couple of seconds.
+            MoveSensorTowardsWorldY(targetSensorY, Mathf.Max(0.1f, landingDescentSpeed));
+            verticalInput = 0f;
+            verticalPropulsion = 0f;
+        }
+
+        bool ForceMinimumSensorAltitude(float minimumSensorWorldY) {
+            const float climbSpeed = 3.5f;
+            const float altitudeEpsilon = 0.03f;
+
+            if (GetSensorWorldY() >= minimumSensorWorldY - altitudeEpsilon) {
+                verticalInput = 0f;
+                return false;
+            }
+
+            MoveSensorTowardsWorldY(minimumSensorWorldY, climbSpeed);
+            verticalInput = 0f;
+            verticalPropulsion = 0f;
+            return true;
+        }
+
+        void MoveSensorTowardsWorldY(float targetSensorWorldY, float speedMetersPerSecond) {
+            float currentSensorY = GetSensorWorldY();
+            float nextSensorY = Mathf.MoveTowards(currentSensorY, targetSensorWorldY, speedMetersPerSecond * Time.fixedDeltaTime);
+            float deltaY = nextSensorY - currentSensorY;
+
+            if (Mathf.Abs(deltaY) < 0.0001f) { return; }
+
+            Vector3 pos = droneRb.position;
+            droneRb.MovePosition(new Vector3(pos.x, pos.y + deltaY, pos.z));
+            KillVerticalVelocity();
+        }
+
+        float GetSensorWorldY() {
+            return droneHeightSensor != null ? droneHeightSensor.position.y : droneRb.position.y;
+        }
+
+        void KillVerticalVelocity() {
+            Vector3 velocity = droneRb.velocity;
+            velocity.y = 0f;
+            droneRb.velocity = velocity;
+        }
+
+        Vector3 ResolveLandingTarget(CircuitStep step) {
+            Vector3 objective = step.GetObjectivePosition();
+            if (objective != Vector3.zero) { return objective; }
+
+            if (step.StepPosition != Vector3.zero) { return step.StepPosition; }
+
+            if (lastPreLandingWorldPosition != Vector3.zero) { return lastPreLandingWorldPosition; }
+
+            return droneRb.transform.position;
+        }
+
+        void MoveToTarget(Vector3 target, float maxForwardInput, float maxVerticalInput, bool keepCurrentAltitude = false, float targetForwardSpeed = -1f) {
+            if (target == Vector3.zero) {
+                StopAssistedInputs();
+                return;
+            }
+
+            Vector3 dronePos = droneRb.transform.position;
+            if (keepCurrentAltitude) { target.y = dronePos.y; }
+
+            Vector3 flatDirection = new Vector3(target.x - dronePos.x, 0f, target.z - dronePos.z);
+            float horizontalDistance = flatDirection.magnitude;
+
+            if (horizontalDistance > waypointTolerance) {
+                float angle = Vector3.SignedAngle(droneRb.transform.forward, flatDirection.normalized, Vector3.up);
+                rotationInput = Mathf.Clamp(angle / targetAngleMax, -1f, 1f);
+
+                // Avoid flying forward when the drone is not aligned enough.
+                if (Mathf.Abs(angle) > 50f) {
+                    frontInput = 0f;
+                }
+                else if (targetForwardSpeed > 0f) {
+                    frontInput = ComputeCruiseFrontInput(targetForwardSpeed, horizontalDistance, maxForwardInput);
+                }
+                else {
+                    frontInput = maxForwardInput;
+                }
+            }
+            else {
+                frontInput = 0f;
+                rotationInput = 0f;
+            }
+
+            if (keepCurrentAltitude) {
+                verticalInput = 0f;
+            }
+            else {
+                EnsureStepEntryReference(target, horizontalDistance);
+                float wantedY = ComputeAlignedAltitude(stepEntryWorldAltitude, target.y, horizontalDistance, stepEntryHorizontalDistance);
+                float altitudeError = wantedY - dronePos.y;
+                verticalInput = Mathf.Clamp(altitudeError / 4f, -maxVerticalInput, maxVerticalInput);
+            }
+
+            strafeInput = 0f;
+        }
+
+        void EnsureStepEntryReference(Vector3 target, float horizontalDistance) {
+            Vector3 flatTarget = new Vector3(target.x, 0f, target.z);
+            Vector3 flatReference = new Vector3(stepEntryTargetPosition.x, 0f, stepEntryTargetPosition.z);
+
+            if (!hasStepEntryReference || Vector3.Distance(flatTarget, flatReference) > 0.1f) {
+                stepEntryWorldAltitude = droneRb.transform.position.y;
+                stepEntryHorizontalDistance = Mathf.Max(horizontalDistance, 0.01f);
+                stepEntryTargetPosition = target;
+                stepEntryStartPosition = droneRb.position;
+                hasStepEntryReference = true;
+            }
+        }
+
+        float ComputeAlignedAltitude(float startY, float targetY, float horizontalDistance, float entryHorizontalDistance) {
+            float alignmentFactor = 1f - Mathf.Clamp01(horizontalDistance / Mathf.Max(entryHorizontalDistance, 0.01f));
+            return Mathf.Lerp(startY, targetY, alignmentFactor);
+        }
+
+        float ComputeCruiseFrontInput(float targetSpeed, float horizontalDistance, float maxForwardInput) {
+            // Keep a real cruise phase around 70 km/h.
+            // The previous proportional command stabilized too low (~51 km/h), because it reduced input too early.
+            // Here we keep full forward command until the measured speed is close to the requested speed.
+            // Then we only ease down inside the final 15 m, with a minimum approach target of 30 km/h.
+            float minApproachSpeed = 30f / 3.6f;
+            float slowDownDistance = 15f;
+
+            float desiredSpeed = targetSpeed;
+            if (horizontalDistance < slowDownDistance) {
+                float t = Mathf.Clamp01(horizontalDistance / slowDownDistance);
+                desiredSpeed = Mathf.Lerp(minApproachSpeed, targetSpeed, t);
+            }
+
+            float speedError = desiredSpeed - FrontSpeed;
+
+            // Below the desired speed, push fully instead of using a soft proportional value.
+            // This avoids the cruise plateau around 50 km/h.
+            if (speedError > 0.5f) {
+                return maxForwardInput;
+            }
+
+            // Near or above target speed, regulate gently. A small negative command is allowed so the drone can
+            // actually slow down during the last 15 m, but it is capped to avoid near-stops at checkpoints.
+            return Mathf.Clamp(speedError / (targetSpeed * 0.20f), -0.25f, maxForwardInput);
+        }
+
+        float HorizontalDistance(Vector3 a, Vector3 b) {
+            return Vector2.Distance(new Vector2(a.x, a.z), new Vector2(b.x, b.z));
+        }
+
+        void StopHorizontalAssistedInputs() {
+            frontInput = 0f;
+            rotationInput = 0f;
+            strafeInput = 0f;
+        }
+
+        void StopAssistedInputs() {
+            frontInput = 0f;
+            verticalInput = 0f;
+            rotationInput = 0f;
+            strafeInput = 0f;
+        }
+
         #endregion
 
 
@@ -624,7 +1202,7 @@ namespace Viable.VRNav {
         /// </summary>
         float GetTargetAngle() {
             float targetAngle = Vector3.SignedAngle(droneRb.transform.forward, new Vector3(destination.x - droneRb.transform.position.x, droneRb.transform.forward.y, destination.z - droneRb.transform.position.z), Vector3.up);
-            return (targetAngle > 0 ? 1 : -1) * Mathf.Min(Mathf.Abs(targetAngle), 15f) / 15f; // Max rotation input is reached at an angle of 15°, reduce input strength for closer angle
+            return (targetAngle > 0 ? 1 : -1) * Mathf.Min(Mathf.Abs(targetAngle), 15f) / 15f; // Max rotation input is reached at an angle of 15ï¿½, reduce input strength for closer angle
         }
 
         /// <summary>
